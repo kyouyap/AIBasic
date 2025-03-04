@@ -1,0 +1,59 @@
+{
+  "customModes": [
+    {
+      "name": "Python:TDD",
+      "groups": [
+        "read",
+        "edit",
+        "browser",
+        "command",
+        "mcp"
+      ],
+      "source": "project",
+      "slug": "python-tdd",
+      "roleDefinition": "\n## 実装モード: TDDモード\n\nTDDモードでは、テストファーストの思想に基づき、順を追ってテストの追加、テストの修正、そしてリファクタリングを行います。ファイル冒頭に `@tdd` などのコメントを記載しておくと、テストファーストモードであることを示す目印になります。\n\n### 考え方: テストは仕様である\n\nテストコードは、そのモジュールの仕様書とみなします。README や既存のテスト一覧から仕様を推測し、まず期待する結果（アサーション）を書いてユーザーに確認を取ります。\n\n実行は以下のように、pytest を利用します：\n\n```bash\n$ pytest --maxfail=1 --disable-warnings -q\n```\n\n### テストの実装順序\n\nテストコードは次の順序で実装します：\n\n1. **期待する結果（アサーション）**  \n   最初に、関数の出力や振る舞いの期待値を書き出します。\n2. **期待結果の妥当性確認**  \n   ここで、ユーザーに結果の妥当性を確認してもらいます。\n3. **操作（Act）のコードを書く**  \n   テスト対象の関数やメソッドの呼び出しコードを記述します。\n4. **必要な準備（Arrange）のコードを書く**  \n   モックや初期設定など、実行前の準備コードを追加します（必要な場合）。\n\nこの実装手順は、実際の実行順序（Arrange → Act → Assert）とは異なります。結果から実装を始めることで、目的を明確にしながらコードを進められます。\n\n### 実装例\n\n以下は、ユーザー情報取得機能の TDD サイクルの例です。ここでは、`returns` などの Result 型ライブラリ（または自作の Result クラス）を利用して、成功と失敗を表現しています。\n\n```python\n# @script @tdd\nfrom typing import NamedTuple, Union\nimport pytest\n\n# 型定義\nclass User(NamedTuple):\n    id: str\n    name: str\n\nclass UnauthorizedError(Exception):\n    pass\n\nclass NetworkError(Exception):\n    pass\n\n# Result 型の簡易実装例\nclass Result:\n    def __init__(self, ok: bool, value: Union[User, Exception]):\n        self._ok = ok\n        self._value = value\n\n    def is_ok(self) -> bool:\n        return self._ok\n\n    def is_err(self) -> bool:\n        return not self._ok\n\n    def unwrap(self) -> User:\n        if self._ok:\n            return self._value\n        raise self._value\n\n    def unwrap_err(self) -> Exception:\n        if not self._ok:\n            return self._value\n        raise Exception(\"Called unwrap_err on an ok result\")\n\n# インターフェース定義（型シグネチャのみ）\ndef get_user(token: str, user_id: str) -> Result:\n    \"\"\"\n    get_user は、与えられたトークンとユーザーIDから、ユーザー情報を取得する。\n    実装は後から追加する（初期状態は WIP）。\n    \"\"\"\n    raise NotImplementedError(\"wip\")\n\n# テストコード（pytest を利用）\ndef test_get_user_with_valid_token():\n    # 1. 期待する結果を定義\n    expected_user = User(id=\"1\", name=\"Test User\")\n    \n    # 2. ユーザーに期待結果の妥当性を確認してもらう\n    # （ここで仕様確認のコメントやレビューを依頼）\n\n    # 3. 操作コードを書く\n    result = get_user(\"valid-token\", \"1\")\n    \n    # 4. 準備コードは必要な場合のみ（今回は不要）\n    \n    # アサーション\n    assert result.is_ok(), \"結果は成功であるべき\"\n    user = result.unwrap()\n    assert user == expected_user, f\"取得したユーザーは {expected_user} であるべき\"\n\ndef test_get_user_with_invalid_token():\n    # 1. 期待する結果を定義\n    expected_error = UnauthorizedError(\"Invalid token\")\n    \n    # 2. ユーザーに期待結果の妥当性を確認してもらう\n    \n    # 3. 操作コードを書く\n    result = get_user(\"invalid-token\", \"1\")\n    \n    # アサーション\n    assert result.is_err(), \"結果はエラーであるべき\"\n    error = result.unwrap_err()\n    assert isinstance(error, UnauthorizedError), \"エラーの型は UnauthorizedError であるべき\"\n    assert str(error) == str(expected_error), \"エラーメッセージが一致すること\"\n```\n\n### テストとアサーションの命名規約\n\nテスト名は以下の形式で記述してください：\n\n```\n「{状況}の場合に{操作}をすると{結果}になること」\n```\n\n例：\n- 「有効なトークンの場合にユーザー情報を取得すると成功すること」\n- 「無効なトークンの場合にユーザー情報を取得するとエラーになること」\n\n### 開発手順の詳細\n\n1. **型シグネチャの定義**  \n   テストコードを書く前に、関数の型シグネチャを定義し、ドキュメントコメント（docstring）で仕様を明示します。  \n   例:\n   ```python\n   def get_user(token: str, user_id: str) -> Result:\n       ...\n   ```\n   ライブラリとして利用する場合は、`__all__` に含めるか、明示的に export します。\n\n2. **テストケースごとの実装**  \n   a. 期待する結果（ユーザー情報やエラー）を定義します。  \n   b. ユーザーに結果の妥当性を確認してもらい、仕様が合意されたら操作コードを実装します。  \n   c. 必要な場合は、モックのセットアップなど準備コードを記述します。\n\n3. **リファクタリングの提案**  \n   テストが成功した後、静的解析（mypy, flake8 など）やコードフォーマットツールを実行し、ユーザーにリファクタリングの提案を行ってください。\n\n---\n\n## Python における TDD のワークフロー\n\n### ディレクトリ構成の例\n\n```\ntdd_example/\n  ├── __init__.py    # パッケージの公開インターフェース（必要に応じて）\n  ├── lib.py         # 実装コード（内部実装、モックなどは deps.py 経由で管理）\n  └── test_lib.py    # テストコード\n```\n\n### TDD 実践の手順\n\n1. **テストを書く**  \n   `test_lib.py` に、期待される動作を記述したテストケースを実装します（上記の例参照）。\n\n2. **テストの失敗を確認する**  \n   実装がまだない状態でテストを実行し、失敗することを確認します。\n   ```bash\n   pytest --maxfail=1 --disable-warnings -q\n   ```\n\n3. **コードを実装する**  \n   `lib.py` にテストケースを満たす最小限の実装を追加し、`NotImplementedError` を削除します。\n\n4. **テストの成功を確認する**  \n   再度テストを実行し、全テストがパスすることを確認します。\n\n5. **リファクタリング**  \n   コード整形ツール（black、flake8 など）や静的解析ツール（mypy）を使ってコードの品質を向上させ、必要に応じて Git コミットを行います。\n\n6. **カバレッジ測定とデッドコード解析**  \n   `pytest --cov` や coverage.py を利用してカバレッジを確認し、十分なテストカバレッジが得られているか検証します。\n\n### Git ワークフローの活用\n\n1. **作業前に変更状態を確認**\n   ```bash\n   git status\n   ```\n2. **テスト追加後にコミット**\n   ```bash\n   git add <変更ファイル>\n   git commit -m \"test: 新規テストケースを追加\"\n   ```\n3. **実装後にコミット**\n   ```bash\n   git add <変更ファイル>\n   git commit -m \"feat: get_user の実装を追加\"\n   ```\n4. **リファクタリング後にコミット**\n   ```bash\n   git add <変更ファイル>\n   git commit -m \"refactor: コードの整理とリファクタリング\"\n   ```\n\n### TypeFirst モード\n\n型を先に定義する TypeFirst モードでは、以下の手順で進めます。\n\n1. **型シグネチャとテストコードを先に作成**  \n   - まず関数の型シグネチャ（例: get_user）とそれに対するテストケースを記述し、型チェックのみでパスすることを確認します。\n2. **ユーザーに型シグネチャを提案**  \n   - 型シグネチャが確定したら、その仕様に基づくテストコードを追加し、仕様を合意する。\n3. **実装に移行**  \n   - 合意された型シグネチャとテストケースに基づき、実装コードを記述しテストが通るようにする。\n\n",
+      "__filename": "/Users/ogatatakuya/Documents/202503/ailab/.cline/roomodes/python-tdd.md"
+    },
+    {
+      "name": "Python:Module",
+      "groups": [
+        "read",
+        "edit",
+        "browser",
+        "command",
+        "mcp"
+      ],
+      "source": "project",
+      "slug": "python-module",
+      "roleDefinition": "\n## 実装モード: モジュールモード\n\nモジュールモードでは、複数のファイルで構成されたパッケージを対象とし、内部実装と公開インターフェースを明確に分離します。以下の例は、ディレクトリ構成と各ファイルの役割について説明しています。\n\n### 例: ディレクトリ構成\n\n```\nxxx/                     # モジュール xxx パッケージ\n  __init__.py           # 公開インターフェース。lib.py からの関数やクラスの再エクスポートのみを行う。\n  deps.py               # 他の外部モジュールのインポートを集約し、内部で使用する機能を re-export する。\n  lib.py                # 実装コード。deps.py から import したものを利用して実装を行う。\n  types.py              # 型定義や定数など、モジュール内で使用する型情報を集約する。\n  test_module.py        # __init__.py の公開インターフェースに対するテストコード。\n  test_lib.py           # lib.py の実装に対するテストコード。\nyyy/                     # 別モジュール yyy も同様の構成\n  __init__.py\n  deps.py\n  lib.py\n  types.py\n  test_module.py\n  test_lib.py\n```\n\n### 各ファイルの役割\n\n- **`__init__.py`:**  \n  - モジュールのパブリックインターフェースを定義します。  \n  - 内部実装（lib.py）の詳細は隠蔽し、必要な関数やクラスだけを再エクスポートします。  \n  - 他モジュールは必ずこのファイル経由で参照し、直接 lib.py など内部ファイルを import してはいけません。\n\n- **`deps.py`:**  \n  - 外部依存関係（例: requests, numpy など）のインポートをまとめ、モジュール内で共通利用できるように再エクスポートします。  \n  - このファイルを見るだけで、モジュールが依存している外部ライブラリを把握できます。\n\n- **`types.py`:**  \n  - モジュール内で使用する型定義（PEP 484 に基づく型ヒントや NamedTuple、dataclass など）を集約します。  \n  - 複雑な型定義はここで管理し、他ファイルからも参照できるようにします。\n\n- **`lib.py`:**  \n  - モジュールの実装コードを担当します。  \n  - 内部では必ず deps.py からインポートした依存関係を使用し、外部からの直接参照はさせません。  \n  - コード量が少ない場合はこのファイル内で実装してもよいですが、実装量が多い場合は適宜複数ファイルに分割します。\n\n- **テストファイル (`test_module.py`, `test_lib.py`):**  \n  - 各実装ファイルに対して、1:1 で対応するテストコードを作成します。  \n  - テストは、パッケージルートまたは同一ディレクトリに配置し、`pytest` コマンドで実行します。  \n  - 例:  \n    ```bash\n    pytest xxx/test_module.py\n    ```\n\n### テストの実行とデバッグ\n\n- モジュール全体のテストは、例えば以下のように実行します：\n  ```bash\n  pytest --maxfail=1 --disable-warnings -q\n  ```\n- 特定のテストファイルだけ実行する場合：\n  ```bash\n  pytest xxx/test_lib.py\n  ```\n- テストが落ちた場合は、落ちたテストの内容を確認し、次の手順で進めます：\n  1. 全体テストを実行して、問題の箇所を特定する。\n  2. 問題のテストファイルのみ実行し、失敗原因をステップバイステップで検証する（プリントデバッグなどを併用）。\n  3. 必要ならば、修正後に再度モジュール全体のテストを確認する。\n\n### 依存管理と外部参照\n\n- Python 版モジュールでは、外部ライブラリは `uv add ` によって管理され、依存関係は `pyproject.toml` や `requirements.txt` に記述します。  \n- 他のモジュールや外部ライブラリを参照する際は、直接ファイルを指定するのではなく、パッケージ管理ツール（uv や pip）を通じて管理し、`__init__.py` 経由で公開することを推奨します。  \n- 例：  \n  - **OK:**  \n    ```python\n    from requests import get\n    ```\n  - **NG:**  \n    ```python\n    from some_internal_path.requests import get\n    ```\n\nこのような構造により、モジュール間の依存関係が明確になり、変更影響範囲が予測しやすく、リファクタリングもしやすくなります。\n\n",
+      "__filename": "/Users/ogatatakuya/Documents/202503/ailab/.cline/roomodes/python-module.md"
+    },
+    {
+      "name": "Deno:Refactor",
+      "groups": [
+        "read",
+        "edit",
+        "browser",
+        "command",
+        "mcp"
+      ],
+      "source": "project",
+      "slug": "python-refactor",
+      "roleDefinition": "\n## リファクターモード\n\nWIP\n",
+      "__filename": "/Users/ogatatakuya/Documents/202503/ailab/.cline/roomodes/python-refactor.md"
+    },
+    {
+      "name": "uv-script Python",
+      "groups": [
+        "read",
+        "edit",
+        "command",
+        "mcp"
+      ],
+      "source": "project",
+      "slug": "uv-script",
+      "roleDefinition": "\n## 実装モード: スクリプトモード\n\n- 外部依存を可能な限り減らし、一つのファイル内に全ての処理（実装＋テスト）を完結させる。\n- テストコードも同じファイルに記述する。\n- スクリプトモードは、ファイル冒頭に `# @script` というコメントが含まれている場合、または `scripts/` や `script/` 以下のファイルが対象となる。\n\nスクリプトモードの例\n\n```python\n# @script\n\"\"\"\n足し算を行うモジュール\n\"\"\"\n\ndef add(a: int, b: int) -> int:\n  return a + b\n\n# メイン実行部：直接実行時のエントリーポイント\nif __name__ == \"__main__\":\n  print(add(1, 2))\n\n# --- テストコード ---\nimport pytest\n\ndef test_add():\n  assert add(1, 2) == 3, \"1 + 2 は 3 であるべき\"\n\n# 'test' 引数を付与して実行するとテストが動作するようにする（例: python script.py test）\nif __name__ == \"__main__\" and 'test' in sys.argv:\n  pytest.main()\n```\n\nCLINE/Roo のようなコーディングエージェントは、まず `python script.py` で実行して動作確認を行い、要求に応じてテストコードを充実させ、後に必要に応じてモジュールモードに移行していきます。\n\n### 依存関係について\n\n- スクリプトモードでは、曖昧な import（たとえば標準ライブラリ以外のライブラリの利用）は許容されるものの、可能な限り安定したバージョンを利用してください。  \n- 具体的には、必要な外部ライブラリは事前に `requirements.txt` や `pyproject.toml` で管理し、pip などでインストール済みであることを前提とします。\n\n**優先順の例**\n\n- 可能であれば、特定バージョンのライブラリは管理ファイル（pyproject.toml など）で固定する  \n- 標準ライブラリを優先する  \n- 外部ライブラリの利用は必要最小限に留める\n\n```python\n# OKな例\nimport requests  # pip install requests でインストール済み\n\n```\n\n最初はスクリプトモードで検証を行い、必要に応じてモジュールモード（複数ファイル構成）に移行してください。\n\n\n",
+      "__filename": "/Users/ogatatakuya/Documents/202503/ailab/.cline/roomodes/uv-script.md"
+    }
+  ]
+}
