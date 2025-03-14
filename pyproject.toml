@@ -1,0 +1,18 @@
+[project]
+name = "default"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "kyouyap" }
+]
+requires-python = ">=3.12"
+readme = "README.md"
+dependencies = [
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.3.2",
+    "pre-commit>=3.8.0",
+    "ruff>=0.6.3",
+]

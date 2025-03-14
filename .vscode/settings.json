@@ -1,9 +1,11 @@
 {
-  "deno.enable": true,
-  "[typescript]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
+  "[python]": {
+      "editor.codeActionsOnSave": {
+          "source.fixAll": "explicit",
+          "source.organizeImports": "explicit"
+      },
+      "editor.formatOnSave": true,
   },
-  "[typescriptreact]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
-  }
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true
 }
