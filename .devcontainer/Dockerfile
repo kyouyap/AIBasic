@@ -1,36 +1,17 @@
-FROM debian:bookworm-slim AS builder
+ARG UV_VERSION=latest
 
-WORKDIR /opt
-
-# The installer requires curl (and certificates) to download the release archive
-# hadolint ignore=DL3008
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        ca-certificates \
-        curl
-
-SHELL [ "/bin/bash", "-o", "pipefail", "-c" ]
-
-# Download the latest installer
-ADD https://astral.sh/uv/install.sh uv-installer.sh
-
-# Run the installer then remove it
-RUN sh uv-installer.sh
+FROM ghcr.io/astral-sh/uv:$UV_VERSION AS uv
 
 
-FROM mcr.microsoft.com/vscode/devcontainers/base:bookworm
+FROM mcr.microsoft.com/vscode/devcontainers/python:3.13
 
-ENV CARGO_HOME="/opt/.cargo/bin"
-ENV PATH="$CARGO_HOME/:$PATH"
+# コンテナ内に.venvを作らないようにする環境変数
+ENV UV_PROJECT_ENVIRONMENT='/usr/local/'
+ENV UV_SYSTEM_PYTHON=1
 
-ENV PYTHONUNBUFFERED=True
-ENV UV_LINK_MODE=copy
+WORKDIR /opt/
 
-WORKDIR /opt
+# バージョンを指定してuvをコピー
+COPY --from=uv /uv /bin/uv
 
-COPY --from=builder /root/.cargo/bin/uv $CARGO_HOME/uv
-COPY ./.python-version ./
-
-RUN uv python pin "$(cat .python-version)"
-
-RUN chown -R vscode $CARGO_HOME
+RUN uv sync

@@ -1,0 +1,59 @@
+{
+    "name": "uv",
+    "build": {
+        "context": "..",
+        "dockerfile": "Dockerfile"
+    },
+    "features": {
+        "ghcr.io/dhoeric/features/hadolint:1": {}
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "charliermarsh.ruff",
+                "codezombiech.gitignore",
+                "eamodio.gitlens",
+                "exiasr.hadolint",
+                "kevinrose.vsc-python-indent",
+                "mosapride.zenkaku",
+                "ms-azuretools.vscode-docker",
+                "ms-python.python",
+                "njpwerner.autodocstring",
+                "oderwat.indent-rainbow",
+                "pkief.material-icon-theme",
+                "shardulm94.trailing-spaces",
+                "usernamehw.errorlens",
+                "yzhang.markdown-all-in-one",
+                "saoudrizwan.claude-dev"
+            ],
+            "settings": {
+                "python.defaultInterpreterPath": "/home/vscode/.pyenv/versions/3.13.2/bin/python",
+                "[python]": {
+                    "editor.defaultFormatter": "charliermarsh.ruff",
+                    "editor.codeActionsOnSave": {
+                        "source.fixAll.ruff": "explicit",
+                        "source.organizeImports.ruff": "explicit"
+                    },
+                    "editor.formatOnSave": true
+                },
+                "files.insertFinalNewline": true,
+                "files.trimTrailingWhitespace": true,
+                "terminal.integrated.defaultProfile.linux": "zsh",
+                "terminal.integrated.profiles.linux": {
+                    "zsh": {
+                        "path": "/bin/zsh"
+                    }
+                }
+            }
+        }
+    },
+    "containerEnv": {
+        "DISPLAY": "dummy",
+        "PYTHONUNBUFFERED": "True",
+        "UV_LINK_MODE": "copy",
+        "UV_PROJECT_ENVIRONMENT": "/home/vscode/.pyenv/versions/3.13.2"
+    },
+    "postCreateCommand": "uv sync --frozen",
+    "postStartCommand": "uv run pre-commit install;",
+    "remoteUser": "vscode"
+}
