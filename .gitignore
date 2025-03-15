@@ -26,3 +26,4 @@ node_modules
 .env
 .env.local
 .dev.vars
+.github/copilot-instructions.md
