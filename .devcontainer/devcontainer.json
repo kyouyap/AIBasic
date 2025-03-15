@@ -27,7 +27,7 @@
                 "saoudrizwan.claude-dev"
             ],
             "settings": {
-                "python.defaultInterpreterPath": "/home/vscode/.pyenv/versions/3.13.2/bin/python",
+                "python.defaultInterpreterPath": "/usr/local/bin/python",
                 "[python]": {
                     "editor.defaultFormatter": "charliermarsh.ruff",
                     "editor.codeActionsOnSave": {
@@ -53,7 +53,6 @@
         "UV_LINK_MODE": "copy",
         "UV_PROJECT_ENVIRONMENT": "/home/vscode/.pyenv/versions/3.13.2"
     },
-    "postCreateCommand": "uv sync --frozen",
     "postStartCommand": "uv run pre-commit install;",
     "remoteUser": "vscode"
 }

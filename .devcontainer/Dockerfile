@@ -14,4 +14,6 @@ WORKDIR /opt/
 # バージョンを指定してuvをコピー
 COPY --from=uv /uv /bin/uv
 
+COPY pyproject.toml uv.lock /opt/
+
 RUN uv sync
