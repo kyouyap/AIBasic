@@ -5,7 +5,8 @@
         "dockerfile": "Dockerfile"
     },
     "features": {
-        "ghcr.io/dhoeric/features/hadolint:1": {}
+        "ghcr.io/dhoeric/features/hadolint:1": {},
+        "ghcr.io/devcontainers/features/git:1": {}
     },
     "customizations": {
         "vscode": {
@@ -16,32 +17,36 @@
                 "kevinrose.vsc-python-indent",
                 "mosapride.zenkaku",
                 "ms-python.python",
-                "oderwat.indent-rainbow",
-                "shardulm94.trailing-spaces",
-                "usernamehw.errorlens",
-                "saoudrizwan.claude-dev"
-            ],
-            "settings": {
-                "python.defaultInterpreterPath": "/usr/local/bin/python",
-                "[python]": {
-                    "editor.defaultFormatter": "charliermarsh.ruff",
-                    "editor.codeActionsOnSave": {
-                        "source.fixAll.ruff": "explicit",
-                        "source.organizeImports.ruff": "explicit"
-                    },
-                    "editor.formatOnSave": true
+                "ms-python.vscode-pylance",
+                "saoudrizwan.claude-dev",
+                "donjayamanne.python-extension-pack",
+                "4ops.terraform",
+                "ms-python.mypy-type-checker",
+                "bierner.markdown-mermaid",
+                "tamasfe.even-better-toml",
+                "GitHub.copilot",
+                "GitHub.copilot-chat"
+            ]
+        },
+        "settings": {
+            "python.defaultInterpreterPath": "/usr/local/bin/python",
+            "[python]": {
+                "editor.defaultFormatter": "charliermarsh.ruff",
+                "editor.codeActionsOnSave": {
+                    "source.fixAll.ruff": "explicit",
+                    "source.organizeImports.ruff": "explicit"
                 },
-                "files.insertFinalNewline": true,
-                "files.trimTrailingWhitespace": true,
-                "terminal.integrated.defaultProfile.linux": "zsh",
-                "terminal.integrated.profiles.linux": {
-                    "zsh": {
-                        "path": "/bin/zsh"
-                    }
+                "editor.formatOnSave": true
+            },
+            "files.insertFinalNewline": true,
+            "files.trimTrailingWhitespace": true,
+            "terminal.integrated.defaultProfile.linux": "zsh",
+            "terminal.integrated.profiles.linux": {
+                "zsh": {
+                    "path": "/bin/zsh"
                 }
             }
         }
     },
-    "postStartCommand": "uv run pre-commit install;",
-    "remoteUser": "vscode"
+    "remoteUser": "root"
 }

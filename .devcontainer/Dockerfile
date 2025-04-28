@@ -9,6 +9,9 @@ FROM mcr.microsoft.com/vscode/devcontainers/python:3.13
 ENV UV_PROJECT_ENVIRONMENT='/usr/local/'
 ENV UV_SYSTEM_PYTHON=1
 
+# site-packagesディレクトリの権限を設定
+RUN chmod -R 777 /usr/local/
+
 WORKDIR /opt/
 
 # バージョンを指定してuvをコピー
